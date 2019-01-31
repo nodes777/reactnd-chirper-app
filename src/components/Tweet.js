@@ -1,38 +1,39 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { formatTweet, formatDate } from "../utils/helpers";
+import React, { Component } from "react"
+import { connect } from "react-redux"
+import { formatTweet, formatDate } from "../utils/helpers"
 import {
 	TiArrowBackOutline,
 	TiHeartOutline,
 	TiHeartFullOutline
-} from "react-icons/ti";
-import { handleToggleTweet } from "../actions/tweets";
+} from "react-icons/ti"
+import { handleToggleTweet } from "../actions/tweets"
+import { Link, withRouter } from "react-router-dom"
 
 class Tweet extends Component {
-	handleLike = e => {
-		e.preventDefault();
+	handleLike = (e) => {
+		e.preventDefault()
 		// because we're connected (mapStateToProps), this is available in props
-		const { dispatch, tweet, authedUser } = this.props;
+		const { dispatch, tweet, authedUser } = this.props
 		dispatch(
 			handleToggleTweet({
 				id: tweet.id,
 				hasLiked: tweet.hasLiked,
 				authedUser
 			})
-		);
-	};
+		)
+	}
 
 	toParent = (e, id) => {
-		e.preventDefault();
-		// TODO redirect to parent tweet
-	};
+		e.preventDefault()
+		this.props.history.push(`/tweet/${id}`)
+	}
 
 	render() {
-		const { tweet } = this.props;
+		const { tweet } = this.props
 		if (tweet === null) {
-			return <p>This tweet doesn't exist</p>;
+			return <p>This tweet doesn't exist</p>
 		}
-		console.log(this.props);
+		console.log(this.props)
 
 		const {
 			name,
@@ -42,11 +43,12 @@ class Tweet extends Component {
 			hasLiked,
 			likes,
 			replies,
-			parent
-		} = tweet;
+			parent,
+			id
+		} = tweet
 
 		return (
-			<div className="tweet">
+			<Link to={`/tweet/${id}`} className="tweet">
 				<img
 					src={avatar}
 					alt={`Avatar of ${name}`}
@@ -59,7 +61,7 @@ class Tweet extends Component {
 						{parent && (
 							<button
 								className="replying-to"
-								onClick={e => this.toParent(e, parent.id)}
+								onClick={(e) => this.toParent(e, parent.id)}
 							>
 								Replying to @{parent.author}
 							</button>
@@ -85,21 +87,25 @@ class Tweet extends Component {
 						<span>{likes !== 0 && likes}</span>
 					</div>
 				</div>
-			</div>
-		);
+			</Link>
+		)
 	}
 }
 
 // first args come from store, second is from our own props
 function mapStateToProps({ authedUser, users, tweets }, { id }) {
-	const tweet = tweets[id];
-	const parentTweet = tweet ? tweets[tweet.replyingTo] : null;
+	const tweet = tweets[id]
+	const parentTweet = tweet ? tweets[tweet.replyingTo] : null
+
+	console.log(tweet)
+	console.log(users[tweet.author])
 	return {
 		authedUser,
 		tweet: tweet
 			? formatTweet(tweet, users[tweet.author], authedUser, parentTweet)
 			: null
-	};
+	}
 }
 
-export default connect(mapStateToProps)(Tweet);
+// withRouter is a higher order func that connects to the BrowserRouter
+export default withRouter(connect(mapStateToProps)(Tweet))

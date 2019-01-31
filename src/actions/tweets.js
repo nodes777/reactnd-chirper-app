@@ -1,14 +1,23 @@
-import { saveLikeToggle } from "../utils/api";
+import { saveLikeToggle, saveTweet } from "../utils/api"
+import { showLoading, hideLoading } from "react-redux-loading"
 
-export const RECEIVE_TWEETS = "RECEIVE_TWEETS";
-export const TOGGLE_TWEET = "TOGGLE_TWEET";
+export const RECEIVE_TWEETS = "RECEIVE_TWEETS"
+export const TOGGLE_TWEET = "TOGGLE_TWEET"
+export const ADD_TWEET = "ADD_TWEET"
 
-export const receiveTweets = tweets => {
+export const receiveTweets = (tweets) => {
 	return {
 		type: RECEIVE_TWEETS,
 		tweets
-	};
-};
+	}
+}
+
+const addTweet = (tweet) => {
+	return {
+		type: ADD_TWEET,
+		tweet
+	}
+}
 
 const toggleTweet = ({ id, authedUser, hasLiked }) => {
 	return {
@@ -16,19 +25,35 @@ const toggleTweet = ({ id, authedUser, hasLiked }) => {
 		id,
 		authedUser,
 		hasLiked
-	};
-};
+	}
+}
 
 export function handleToggleTweet(info) {
-	return dispatch => {
+	return (dispatch) => {
 		// optimistic update
-		dispatch(toggleTweet(info));
+		dispatch(toggleTweet(info))
 
-		return saveLikeToggle(info).catch(e => {
-			console.warn(`Error in handleToggleTweet: ${e}`);
+		return saveLikeToggle(info).catch((e) => {
+			console.warn(`Error in handleToggleTweet: ${e}`)
 			// reset it to initial
-			dispatch(toggleTweet(info));
-			alert(`There was an error liking the tweet, try again`);
-		});
-	};
+			dispatch(toggleTweet(info))
+			alert(`There was an error liking the tweet, try again`)
+		})
+	}
+}
+
+export function handleAddTweet(text, replyingTo) {
+	return (dispatch, getState) => {
+		const { authedUser } = getState()
+
+		dispatch(showLoading())
+
+		return saveTweet({
+			text,
+			author: authedUser,
+			replyingTo
+		})
+			.then((tweet) => dispatch(addTweet(tweet)))
+			.then(() => dispatch(hideLoading()))
+	}
 }
